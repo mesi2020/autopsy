@@ -183,35 +183,49 @@ class MesiHashFileIngestModule(FileIngestModule):
             #######################
             try:
                 self.log(Level.INFO, "Begin Create New Artifacts")
-                artID_ls = skCase.addArtifactType( "TSK_RECICLAGEM", "Reciclagem")
+                artID_ls = skCase.addArtifactType( "TSK_MESIHASH", "MESI:Calculated Files Hash")
             except:		
                 self.log(Level.INFO, "Artifacts Creation Error, some artifacts may not exist now. ==> ")
         
-            # Criacao de um atributo do tipo string
+            # Criacao de um atributo MD5 do tipo string
             try:
-                attIdFilePath = skCase.addArtifactAttributeType("TSK_FILE_NAME_PATH", BlackboardAttribute.TSK_BLACKBOARD_ATTRIBUTE_VALUE_TYPE.STRING, "Caminho do ficheiro")
+                attIdmd5 = skCase.addArtifactAttributeType("TSK_FILE_MESIMD5", BlackboardAttribute.TSK_BLACKBOARD_ATTRIBUTE_VALUE_TYPE.STRING, "MD5")
             except:
-                attIdFilePath = skCase.getAttributeType("TSK_FILE_NAME_PATH")		
-                self.log(Level.INFO, "Attributes Creation Error, TSK_FILE_NAME_PATH ==> ")
-        
-            # criacao de um atributo do tipo datetime
-            #try:
-            #    attIdDelTime = skCase.addArtifactAttributeType("TSK_FILE_DEL_TIME", BlackboardAttribute.TSK_BLACKBOARD_ATTRIBUTE_VALUE_TYPE.DATETIME, "Data de recmocao")
-            #except:
-            #    attIdDelTime = skCase.getAttributeType("TSK_FILE_DEL_TIME")		
-            #    self.log(Level.INFO, "Attributes Creation Error, TSK_FILE_DEL_TIME ==> ")
+                attIdmd5 = skCase.getAttributeType("TSK_FILE_MESIMD5")		
+                self.log(Level.INFO, "Attributes Creation Error, TSK_FILE_MESIMD5 ==> ")
+                
+            # Criacao de um atributo do SHA1 tipo string
+            try:
+                attIdsha1 = skCase.addArtifactAttributeType("TSK_FILE_MESISHA1", BlackboardAttribute.TSK_BLACKBOARD_ATTRIBUTE_VALUE_TYPE.STRING, "SHA1")
+            except:
+                attIdsha1 = skCase.getAttributeType("TSK_FILE_MESIMD5")		
+                self.log(Level.INFO, "Attributes Creation Error, TSK_FILE_MESISHA1 ==> ")
+                
+            # Criacao de um atributo do SHA256 tipo string
+            try:
+                attIdsha256 = skCase.addArtifactAttributeType("TSK_FILE_MESISHA256", BlackboardAttribute.TSK_BLACKBOARD_ATTRIBUTE_VALUE_TYPE.STRING, "SHA256")
+            except:
+                attIdsha256 = skCase.getAttributeType("TSK_FILE_MESI256")		
+                self.log(Level.INFO, "Attributes Creation Error, TSK_FILE_MESI256 ==> ")
+            
+            # Criacao de um atributo do SHA512 tipo string
+            try:
+                attIdsha512 = skCase.addArtifactAttributeType("TSK_FILE_MESISHA512", BlackboardAttribute.TSK_BLACKBOARD_ATTRIBUTE_VALUE_TYPE.STRING, "SHA512")
+            except:
+                attIdsha512 = skCase.getAttributeType("TSK_FILE_MESI512")		
+                self.log(Level.INFO, "Attributes Creation Error, TSK_FILE_MESI512 ==> ")
+                
 
-            artifactName = "TSK_RECICLAGEM"
+            artifactName = "TSK_MESIHASH"
             artId = skCase.getArtifactTypeID(artifactName)
-            attIdUserName = skCase.getAttributeType("TSK_USER_NAME")
-
+            
             ######################
             
-            art = file.newArtifact(BlackboardArtifact.ARTIFACT_TYPE.TSK_INTERESTING_FILE_HIT)          
-            
+            art = file.newArtifact(BlackboardArtifact.ARTIFACT_TYPE.TSK_INTERESTING_FILE_HIT)                     
             att = BlackboardAttribute(BlackboardAttribute.ATTRIBUTE_TYPE.TSK_SET_NAME,
                                       MesiHash.moduleName, "Ficheiros Hash")
-            
+                                      
+                                                 
             art.addAttribute(att)
 
             try:
@@ -220,19 +234,28 @@ class MesiHashFileIngestModule(FileIngestModule):
             except Blackboard.BlackboardException as e:
                 self.log(Level.SEVERE, "Error indexing artifact " + art.getDisplayName())
                 
+            #Para cada ficheiro adiciona um artefato
             art = file.newArtifact(artId)            
-            art.addAttribute(BlackboardAttribute(attIdFilePath, MesiHash.moduleName, "String"))         
+            art.addAttribute(BlackboardAttribute(attIdmd5, MesiHash.moduleName, "jhasdi76asdkgasdjyt76ads"))         
+            art.addAttribute(BlackboardAttribute(attIdsha1, MesiHash.moduleName, "asfdsassdi76asdkgasdjyt76ads"))         
+            art.addAttribute(BlackboardAttribute(attIdsha256, MesiHash.moduleName, "gfgasfdsassdi76asdkgasdjyt76ads"))
+            art.addAttribute(BlackboardAttribute(attIdsha512, MesiHash.moduleName, "asfdsassdi76asdkgasdjyt76ads"))
 
+            #adiciona o artefato no blackboard
             try:
                 # index the artifact for keyword search
                 blackboard.indexArtifact(art)
             except Blackboard.BlackboardException as e:
                 self.log(Level.SEVERE, "Error indexing artifact " + art.getDisplayName())
+            IngestServices.getInstance().fireModuleDataEvent(
+                ModuleDataEvent(MesiHash.moduleName,
+                    BlackboardArtifact.ARTIFACT_TYPE.TSK_INTERESTING_ARTIFACT_HIT, None))
 
             # Fire an event to notify the UI and others that there is a new artifact
             IngestServices.getInstance().fireModuleDataEvent(
                 ModuleDataEvent(MesiHash.moduleName,
                                 BlackboardArtifact.ARTIFACT_TYPE.TSK_INTERESTING_FILE_HIT, None))
+
 
             # For the example (this wouldn't be needed normally), we'll query the blackboard for data that was added
             # by other modules. We then iterate over its attributes.  We'll just print them, but you would probably
