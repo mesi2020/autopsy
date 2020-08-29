@@ -157,6 +157,7 @@ class MesiHashFileIngestModule(FileIngestModule):
     # TODO: Add your analysis code in here.
     def process(self, file):
         # Skip non-files
+        skCase = Case.getCurrentCase().getSleuthkitCase();
         
         sha256_hash = hashlib.sha256()
                 
@@ -176,13 +177,51 @@ class MesiHashFileIngestModule(FileIngestModule):
 
             # Make an artifact on the blackboard.  TSK_INTERESTING_FILE_HIT is a generic type of
             # artifact.  Refer to the developer docs for other examples.
-            art = file.newArtifact(BlackboardArtifact.ARTIFACT_TYPE.TSK_INTERESTING_FILE_HIT)
             
+            # Setup Artifact and Attributes - Teste
+
+            #######################
+            try:
+                self.log(Level.INFO, "Begin Create New Artifacts")
+                artID_ls = skCase.addArtifactType( "TSK_RECICLAGEM", "Reciclagem")
+            except:		
+                self.log(Level.INFO, "Artifacts Creation Error, some artifacts may not exist now. ==> ")
+        
+            # Criacao de um atributo do tipo string
+            try:
+                attIdFilePath = skCase.addArtifactAttributeType("TSK_FILE_NAME_PATH", BlackboardAttribute.TSK_BLACKBOARD_ATTRIBUTE_VALUE_TYPE.STRING, "Caminho do ficheiro")
+            except:
+                attIdFilePath = skCase.getAttributeType("TSK_FILE_NAME_PATH")		
+                self.log(Level.INFO, "Attributes Creation Error, TSK_FILE_NAME_PATH ==> ")
+        
+            # criacao de um atributo do tipo datetime
+            #try:
+            #    attIdDelTime = skCase.addArtifactAttributeType("TSK_FILE_DEL_TIME", BlackboardAttribute.TSK_BLACKBOARD_ATTRIBUTE_VALUE_TYPE.DATETIME, "Data de recmocao")
+            #except:
+            #    attIdDelTime = skCase.getAttributeType("TSK_FILE_DEL_TIME")		
+            #    self.log(Level.INFO, "Attributes Creation Error, TSK_FILE_DEL_TIME ==> ")
+
+            artifactName = "TSK_RECICLAGEM"
+            artId = skCase.getArtifactTypeID(artifactName)
+            attIdUserName = skCase.getAttributeType("TSK_USER_NAME")
+
+            ######################
+            
+            art = file.newArtifact(BlackboardArtifact.ARTIFACT_TYPE.TSK_INTERESTING_FILE_HIT)          
             
             att = BlackboardAttribute(BlackboardAttribute.ATTRIBUTE_TYPE.TSK_SET_NAME,
                                       MesiHash.moduleName, "Ficheiros Hash")
             
             art.addAttribute(att)
+
+            try:
+                # index the artifact for keyword search
+                blackboard.indexArtifact(art)
+            except Blackboard.BlackboardException as e:
+                self.log(Level.SEVERE, "Error indexing artifact " + art.getDisplayName())
+                
+            art = file.newArtifact(artId)            
+            art.addAttribute(BlackboardAttribute(attIdFilePath, MesiHash.moduleName, "String"))         
 
             try:
                 # index the artifact for keyword search
