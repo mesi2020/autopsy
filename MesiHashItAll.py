@@ -109,16 +109,8 @@ class MesiHashFileIngestModule(FileIngestModule):
         ttl = int(self.txt1.getText()) + int(self.txt2.getText())
         self.txt3.setText(str(ttl))
         
-
-    def startUp(self, context):
-        self.filesFound = 0
-
-        self.log(Level.INFO, "DEBUG: iniciei")
-        # Throw an IngestModule.IngestModuleException exception if there was a problem setting up
-        # raise IngestModuleException("Oh No!")
-        #
-        frame = JFrame("Painel de configuracao")
-        
+    def guiTest():
+        frame = JFrame("Painel de configuracao")        
         self.log(Level.INFO, "DEBUG: Criei uma frame")
         #frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE)
         #frame.setLocation(100,100)
@@ -149,6 +141,14 @@ class MesiHashFileIngestModule(FileIngestModule):
 
         frame.setVisible(True)
         self.log(Level.INFO, "DEBUG: Ate aqui tudo bem")
+        
+    def startUp(self, context):
+        self.filesFound = 0
+
+        self.log(Level.INFO, "DEBUG: iniciei")
+        # Throw an IngestModule.IngestModuleException exception if there was a problem setting up
+        # raise IngestModuleException("Oh No!")
+        #        
         pass
 
     # Where the analysis is done.  Each file will be passed into here.
@@ -201,12 +201,26 @@ class MesiHashFileIngestModule(FileIngestModule):
                 attIdsha1 = skCase.getAttributeType("TSK_FILE_MESIMD5")		
                 self.log(Level.INFO, "Attributes Creation Error, TSK_FILE_MESISHA1 ==> ")
                 
+            # Criacao de um atributo do SHA224 tipo string
+            try:
+                attIdsha224 = skCase.addArtifactAttributeType("TSK_FILE_MESISHA224", BlackboardAttribute.TSK_BLACKBOARD_ATTRIBUTE_VALUE_TYPE.STRING, "SHA224")
+            except:
+                attIdsha224 = skCase.getAttributeType("TSK_FILE_MESI224")		
+                self.log(Level.INFO, "Attributes Creation Error, TSK_FILE_MESI224 ==> ")
+                
             # Criacao de um atributo do SHA256 tipo string
             try:
                 attIdsha256 = skCase.addArtifactAttributeType("TSK_FILE_MESISHA256", BlackboardAttribute.TSK_BLACKBOARD_ATTRIBUTE_VALUE_TYPE.STRING, "SHA256")
             except:
                 attIdsha256 = skCase.getAttributeType("TSK_FILE_MESI256")		
                 self.log(Level.INFO, "Attributes Creation Error, TSK_FILE_MESI256 ==> ")
+                
+            # Criacao de um atributo do SHA256 tipo string
+            try:
+                attIdsha384 = skCase.addArtifactAttributeType("TSK_FILE_MESISHA384", BlackboardAttribute.TSK_BLACKBOARD_ATTRIBUTE_VALUE_TYPE.STRING, "SHA384")
+            except:
+                attIdsha384 = skCase.getAttributeType("TSK_FILE_MESI384")		
+                self.log(Level.INFO, "Attributes Creation Error, TSK_FILE_MESI384 ==> ")
             
             # Criacao de um atributo do SHA512 tipo string
             try:
@@ -234,11 +248,32 @@ class MesiHashFileIngestModule(FileIngestModule):
             except Blackboard.BlackboardException as e:
                 self.log(Level.SEVERE, "Error indexing artifact " + art.getDisplayName())
                 
+           
+
+            # Processamento - Calculo do sha256
+            sha256_hash = hashlib.sha256()
+            
+            inputStream = ReadContentInputStream(file)            
+            buffer = jarray.zeros(4096, "b")
+            totLen = 0
+            
+            len = inputStream.read(buffer)
+            sha256_hash.update(buffer)
+            while (len != -1):
+                    totLen = totLen + len                    
+                    len = inputStream.read(buffer)                    
+                    sha256_hash.update(buffer)
+
+
+
+
             #Para cada ficheiro adiciona um artefato
             art = file.newArtifact(artId)            
             art.addAttribute(BlackboardAttribute(attIdmd5, MesiHash.moduleName, "jhasdi76asdkgasdjyt76ads"))         
-            art.addAttribute(BlackboardAttribute(attIdsha1, MesiHash.moduleName, "asfdsassdi76asdkgasdjyt76ads"))         
-            art.addAttribute(BlackboardAttribute(attIdsha256, MesiHash.moduleName, "gfgasfdsassdi76asdkgasdjyt76ads"))
+            art.addAttribute(BlackboardAttribute(attIdsha1, MesiHash.moduleName, "asfdsassdi76asdkgasdjyt76ads"))     
+            art.addAttribute(BlackboardAttribute(attIdsha224, MesiHash.moduleName, "gfgasfdsassdi76asdkgasdjyt76ads"))            
+            art.addAttribute(BlackboardAttribute(attIdsha256, MesiHash.moduleName, sha256_hash.hexdigest()))
+            art.addAttribute(BlackboardAttribute(attIdsha384, MesiHash.moduleName, "gfgasfdsassdi76asdkgasdjyt76ads"))
             art.addAttribute(BlackboardAttribute(attIdsha512, MesiHash.moduleName, "asfdsassdi76asdkgasdjyt76ads"))
 
             #adiciona o artefato no blackboard
@@ -265,16 +300,6 @@ class MesiHashFileIngestModule(FileIngestModule):
                 attributeList = artifact.getAttributes()
                 for attrib in attributeList:
                     self.log(Level.INFO, attrib.toString())
-
-            # To further the example, this code will read the contents of the file and count the number of bytes
-            inputStream = ReadContentInputStream(file)
-            buffer = jarray.zeros(1024, "b")
-            totLen = 0
-            len = inputStream.read(buffer)
-            while (len != -1):
-                    totLen = totLen + len
-                    len = inputStream.read(buffer)                    
-
         return IngestModule.ProcessResult.OK
 
     # Where any shutdown code is run and resources are freed.
