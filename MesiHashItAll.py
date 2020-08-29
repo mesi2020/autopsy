@@ -249,27 +249,38 @@ class MesiHashFileIngestModule(FileIngestModule):
                 self.log(Level.SEVERE, "Error indexing artifact " + art.getDisplayName())
                 
            
-
+            
             # Processamento - Calculo do sha256
             sha256_hash = hashlib.sha256()
+            # Processamento - Calculo do md5
+            md5_hash = hashlib.md5()
             
-            inputStream = ReadContentInputStream(file)            
-            buffer = jarray.zeros(4096, "b")
-            totLen = 0
+            ### inputStream = ReadContentInputStream(file)            
+            
+            ### for byte_block in inputStream:
+            ###iter(lambda: inputStream.read(4096),b""):
+            ###    sha256_hash.update(byte_block)
+            ###    md5_hash.update(byte_block)
+            
+            ### buffer = jarray.zeros(4096, "b")
+            ### totLen = 0
             
             len = inputStream.read(buffer)
             sha256_hash.update(buffer)
+            md5_hash.update(buffer)
+            
             while (len != -1):
                     totLen = totLen + len                    
                     len = inputStream.read(buffer)                    
                     sha256_hash.update(buffer)
+                    md5_hash.update(buffer)
 
 
 
 
             #Para cada ficheiro adiciona um artefato
             art = file.newArtifact(artId)            
-            art.addAttribute(BlackboardAttribute(attIdmd5, MesiHash.moduleName, "jhasdi76asdkgasdjyt76ads"))         
+            art.addAttribute(BlackboardAttribute(attIdmd5, MesiHash.moduleName, md5_hash.hexdigest()))         
             art.addAttribute(BlackboardAttribute(attIdsha1, MesiHash.moduleName, "asfdsassdi76asdkgasdjyt76ads"))     
             art.addAttribute(BlackboardAttribute(attIdsha224, MesiHash.moduleName, "gfgasfdsassdi76asdkgasdjyt76ads"))            
             art.addAttribute(BlackboardAttribute(attIdsha256, MesiHash.moduleName, sha256_hash.hexdigest()))
