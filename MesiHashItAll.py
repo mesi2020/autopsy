@@ -252,27 +252,43 @@ class MesiHashFileIngestModule(FileIngestModule):
             
             # Processamento - Calculo do sha256
             sha256_hash = hashlib.sha256()
+            # Processamento - Calculo do sha1
+            sha1_hash = hashlib.sha1()
+            # Processamento - Calculo do sha224
+            sha224_hash = hashlib.sha224()
+            # Processamento - Calculo do sha384
+            sha384_hash = hashlib.sha384()
+            # Processamento - Calculo do sha512
+            sha512_hash = hashlib.sha512()
             # Processamento - Calculo do md5
             md5_hash = hashlib.md5()
             
-            ### inputStream = ReadContentInputStream(file)            
+            inputStream = ReadContentInputStream(file)            
             
             ### for byte_block in inputStream:
             ###iter(lambda: inputStream.read(4096),b""):
             ###    sha256_hash.update(byte_block)
             ###    md5_hash.update(byte_block)
             
-            ### buffer = jarray.zeros(4096, "b")
-            ### totLen = 0
+            buffer = jarray.zeros(4096, "b")
+            totLen = 0
             
             len = inputStream.read(buffer)
             sha256_hash.update(buffer)
+            sha1_hash.update(buffer)
+            sha224_hash.update(buffer)
+            sha384_hash.update(buffer)
+            sha512_hash.update(buffer)
             md5_hash.update(buffer)
             
             while (len != -1):
                     totLen = totLen + len                    
                     len = inputStream.read(buffer)                    
                     sha256_hash.update(buffer)
+                    sha224_hash.update(buffer)
+                    sha384_hash.update(buffer)
+                    sha512_hash.update(buffer)
+                    sha1_hash.update(buffer)
                     md5_hash.update(buffer)
 
 
@@ -281,11 +297,11 @@ class MesiHashFileIngestModule(FileIngestModule):
             #Para cada ficheiro adiciona um artefato
             art = file.newArtifact(artId)            
             art.addAttribute(BlackboardAttribute(attIdmd5, MesiHash.moduleName, md5_hash.hexdigest()))         
-            art.addAttribute(BlackboardAttribute(attIdsha1, MesiHash.moduleName, "asfdsassdi76asdkgasdjyt76ads"))     
-            art.addAttribute(BlackboardAttribute(attIdsha224, MesiHash.moduleName, "gfgasfdsassdi76asdkgasdjyt76ads"))            
+            art.addAttribute(BlackboardAttribute(attIdsha1, MesiHash.moduleName, sha1_hash.hexdigest()))     
+            art.addAttribute(BlackboardAttribute(attIdsha224, MesiHash.moduleName, sha224_hash.hexdigest()))            
             art.addAttribute(BlackboardAttribute(attIdsha256, MesiHash.moduleName, sha256_hash.hexdigest()))
-            art.addAttribute(BlackboardAttribute(attIdsha384, MesiHash.moduleName, "gfgasfdsassdi76asdkgasdjyt76ads"))
-            art.addAttribute(BlackboardAttribute(attIdsha512, MesiHash.moduleName, "asfdsassdi76asdkgasdjyt76ads"))
+            art.addAttribute(BlackboardAttribute(attIdsha384, MesiHash.moduleName, sha384_hash.hexdigest()))
+            art.addAttribute(BlackboardAttribute(attIdsha512, MesiHash.moduleName, sha512_hash.hexdigest()))
 
             #adiciona o artefato no blackboard
             try:
