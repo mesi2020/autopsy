@@ -204,10 +204,10 @@ class MesiHashFileIngestModule(FileIngestModule):
                 #self.log(Level.INFO, "Attributes Creation Error, TSK_FILE_MESISHA1 ==> ")
                 
             # Criacao de um atributo do SHA224 tipo string
-            try:
-                attIdsha224 = skCase.addArtifactAttributeType("TSK_FILE_MESISHA224", BlackboardAttribute.TSK_BLACKBOARD_ATTRIBUTE_VALUE_TYPE.STRING, "SHA224")
-            except:
-                attIdsha224 = skCase.getAttributeType("TSK_FILE_MESISHA224")		
+            #try:
+            #    attIdsha224 = skCase.addArtifactAttributeType("TSK_FILE_MESISHA224", BlackboardAttribute.TSK_BLACKBOARD_ATTRIBUTE_VALUE_TYPE.STRING, "SHA224")
+            #except:
+            #    attIdsha224 = skCase.getAttributeType("TSK_FILE_MESISHA224")		
                 #self.log(Level.INFO, "Attributes Creation Error, TSK_FILE_MESISHA224 ==> ")
                 
             # Criacao de um atributo do SHA256 tipo string
@@ -233,43 +233,97 @@ class MesiHashFileIngestModule(FileIngestModule):
                 
             #Obtem o artefacto, por nome
             artID = skCase.getArtifactTypeID("TSK_MESIHASH")
+            md5_hash = ""
+            sha1_hash = ""
+            sha224_hash = ""
+            sha256_hash = ""
+            sha384_hash = ""
+            sha512_hash = ""
+               
             try:
                # Processamento - Calculo do sha256
-               sha256_hash = hashlib.sha256()
+               #sha256_hash = hashlib.sha256()
                # Processamento - Calculo do sha1
-               sha1_hash = hashlib.sha1()
+               #sha1_hash = hashlib.sha1()
                # Processamento - Calculo do sha224
-               sha224_hash = hashlib.sha224()
+               #sha224_hash = hashlib.sha224()
                # Processamento - Calculo do sha384
-               sha384_hash = hashlib.sha384()
+               #sha384_hash = hashlib.sha384()
                # Processamento - Calculo do sha512
-               sha512_hash = hashlib.sha512()
+               #sha512_hash = hashlib.sha512()
                # Processamento - Calculo do md5
-               md5_hash = hashlib.md5()
+               #md5_hash = hashlib.md5()
+                        
+               try:
+                  inputStream = ReadContentInputStream(file)
+                  sha512_hash = DigestUtils.sha512Hex(inputStream)
+                  self.log(Level.INFO, "sha512Hex")
+               except Exception as e:
+                   sha512_hash=""
+                   self.log(Level.SEVERE, "Erro a calcular sha512Hex")
+
+               try:
+                  inputStream = ReadContentInputStream(file)
+                  sha256_hash = DigestUtils.sha256Hex(inputStream)
+                  self.log(Level.INFO, "sha256Hex")
+               except Exception as e:
+                   sha256_hash=""
+                   self.log(Level.SEVERE, "Erro a calcular sha256Hex")
+               
+               try:
+                   inputStream = ReadContentInputStream(file)
+                   sha384_hash = DigestUtils.sha384Hex(inputStream)
+                   self.log(Level.INFO, "sha384Hex")
+               except Exception as e:
+                   sha384_hash=""
+                   self.log(Level.SEVERE, "Erro a calcular sha384Hex")
+               
+               #try:
+               #    inputStream = ReadContentInputStream(file)   
+               #    sha224_hash = DigestUtils.sha224Hex(inputStream)
+               #    self.log(Level.INFO, "sha224Hex")
+               #except Exception as e:
+               #    sha224_hash=""
+               #    self.log(Level.SEVERE, "Erro a calcular sha224Hex")
+               
+               try:
+                   inputStream = ReadContentInputStream(file)            
+                   md5_hash = DigestUtils.md5Hex(inputStream)
+                   self.log(Level.INFO, "md5Hex")
+               except Exception as e:
+                   shamd5_hash=""
+                   self.log(Level.SEVERE, "Erro a calcular md5Hex")
+               
+               try: 
+                   inputStream = ReadContentInputStream(file)                                 
+                   sha1_hash = DigestUtils.sha1Hex(inputStream)
+                   self.log(Level.INFO, "sha1Hex")
+               except Exception as e:
+                   sha1_hash=""
+                   self.log(Level.SEVERE, "Erro a calcular sha1Hex")
+               
+               
             
-               inputStream = ReadContentInputStream(file)            
+               #buffer = jarray.zeros(4096, "b")
+               #totLen = 0
             
+               #len = inputStream.read(buffer)
+               #sha256_hash.update(buffer)
+               #sha1_hash.update(buffer)
+               #sha224_hash.update(buffer)
+               #sha384_hash.update(buffer)
+               #sha512_hash.update(buffer)
+               #md5_hash.update(buffer)
             
-               buffer = jarray.zeros(4096, "b")
-               totLen = 0
-            
-               len = inputStream.read(buffer)
-               sha256_hash.update(buffer)
-               sha1_hash.update(buffer)
-               sha224_hash.update(buffer)
-               sha384_hash.update(buffer)
-               sha512_hash.update(buffer)
-               md5_hash.update(buffer)
-            
-               while (len != -1):
-                  totLen = totLen + len                    
-                  len = inputStream.read(buffer)                    
-                  sha256_hash.update(buffer)
-                  sha224_hash.update(buffer)
-                  sha384_hash.update(buffer)
-                  sha512_hash.update(buffer)
-                  sha1_hash.update(buffer)
-                  md5_hash.update(buffer)
+               #while (len != -1):
+               #   totLen = totLen + len                    
+               #   len = inputStream.read(buffer)                    
+               #   sha256_hash.update(buffer)
+               #   sha224_hash.update(buffer)
+               #   sha384_hash.update(buffer)
+               #   sha512_hash.update(buffer)
+               #   sha1_hash.update(buffer)
+                  #md5_hash.update(buffer)
                
             except Exception as e:
                self.log(Level.SEVERE, "Erro a ler o ficheiro")
@@ -278,12 +332,12 @@ class MesiHashFileIngestModule(FileIngestModule):
             #Para cada ficheiro adiciona um artefato
             #try:
             art = file.newArtifact(artID)            
-            art.addAttribute(BlackboardAttribute(attIdmd5, MesiHash.moduleName, md5_hash.hexdigest()))         
-            art.addAttribute(BlackboardAttribute(attIdsha1, MesiHash.moduleName, sha1_hash.hexdigest()))     
-            art.addAttribute(BlackboardAttribute(attIdsha224, MesiHash.moduleName, sha224_hash.hexdigest()))            
-            art.addAttribute(BlackboardAttribute(attIdsha256, MesiHash.moduleName, sha256_hash.hexdigest()))
-            art.addAttribute(BlackboardAttribute(attIdsha384, MesiHash.moduleName, sha384_hash.hexdigest()))
-            art.addAttribute(BlackboardAttribute(attIdsha512, MesiHash.moduleName, sha512_hash.hexdigest()))
+            art.addAttribute(BlackboardAttribute(attIdmd5, MesiHash.moduleName, md5_hash))         
+            art.addAttribute(BlackboardAttribute(attIdsha1, MesiHash.moduleName, sha1_hash))     
+            #art.addAttribute(BlackboardAttribute(attIdsha224, MesiHash.moduleName, sha224_hash))            
+            art.addAttribute(BlackboardAttribute(attIdsha256, MesiHash.moduleName, sha256_hash))
+            art.addAttribute(BlackboardAttribute(attIdsha384, MesiHash.moduleName, sha384_hash))
+            art.addAttribute(BlackboardAttribute(attIdsha512, MesiHash.moduleName, sha512_hash))
             blackboard.indexArtifact(art)
             #except Exception as e:
             #   self.log(Level.SEVERE, "Error indexing artifact ")
