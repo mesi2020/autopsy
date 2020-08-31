@@ -34,6 +34,7 @@
 # See http://sleuthkit.org/autopsy/docs/api-docs/4.6.0/index.html for documentation
 
 import hashlib
+from org.apache.commons.codec.digest import DigestUtils
 import jarray
 import inspect
 from java.lang import System
@@ -170,9 +171,9 @@ class MesiHashFileIngestModule(FileIngestModule):
         blackboard = Case.getCurrentCase().getServices().getBlackboard()
         
         # For an example, we will flag files with .txt in the name and make a blackboard artifact.
-        if file.getName().lower().endswith(".txt"):
+        if (1==1):
             
-            self.log(Level.INFO, "Encontrei um ficheiro de texto: " + file.getName())
+            self.log(Level.INFO, "Encontrei um ficheiro " + file.getName())
             self.filesFound+=1
 
             # Make an artifact on the blackboard.  TSK_INTERESTING_FILE_HIT is a generic type of
@@ -182,151 +183,120 @@ class MesiHashFileIngestModule(FileIngestModule):
 
             #######################
             try:
-                self.log(Level.INFO, "Begin Create New Artifacts")
-                artID_ls = skCase.addArtifactType( "TSK_MESIHASH", "MESI:Calculated Files Hash")
+                #self.log(Level.INFO, "Begin Create New Artifacts")
+                artID = skCase.addArtifactType( "TSK_MESIHASH", "MESI:Calculated Files Hash")
             except:		
-                self.log(Level.INFO, "Artifacts Creation Error, some artifacts may not exist now. ==> ")
+                #self.log(Level.INFO, "Artifacts Creation Error, some artifacts may not exist now. ==> ")
+                pass
         
             # Criacao de um atributo MD5 do tipo string
             try:
                 attIdmd5 = skCase.addArtifactAttributeType("TSK_FILE_MESIMD5", BlackboardAttribute.TSK_BLACKBOARD_ATTRIBUTE_VALUE_TYPE.STRING, "MD5")
             except:
                 attIdmd5 = skCase.getAttributeType("TSK_FILE_MESIMD5")		
-                self.log(Level.INFO, "Attributes Creation Error, TSK_FILE_MESIMD5 ==> ")
+                #self.log(Level.INFO, "Attributes Creation Error, TSK_FILE_MESIMD5 ==> ")
                 
             # Criacao de um atributo do SHA1 tipo string
             try:
                 attIdsha1 = skCase.addArtifactAttributeType("TSK_FILE_MESISHA1", BlackboardAttribute.TSK_BLACKBOARD_ATTRIBUTE_VALUE_TYPE.STRING, "SHA1")
             except:
-                attIdsha1 = skCase.getAttributeType("TSK_FILE_MESIMD5")		
-                self.log(Level.INFO, "Attributes Creation Error, TSK_FILE_MESISHA1 ==> ")
+                attIdsha1 = skCase.getAttributeType("TSK_FILE_MESISHA1")		
+                #self.log(Level.INFO, "Attributes Creation Error, TSK_FILE_MESISHA1 ==> ")
                 
             # Criacao de um atributo do SHA224 tipo string
             try:
                 attIdsha224 = skCase.addArtifactAttributeType("TSK_FILE_MESISHA224", BlackboardAttribute.TSK_BLACKBOARD_ATTRIBUTE_VALUE_TYPE.STRING, "SHA224")
             except:
-                attIdsha224 = skCase.getAttributeType("TSK_FILE_MESI224")		
-                self.log(Level.INFO, "Attributes Creation Error, TSK_FILE_MESI224 ==> ")
+                attIdsha224 = skCase.getAttributeType("TSK_FILE_MESISHA224")		
+                #self.log(Level.INFO, "Attributes Creation Error, TSK_FILE_MESISHA224 ==> ")
                 
             # Criacao de um atributo do SHA256 tipo string
             try:
                 attIdsha256 = skCase.addArtifactAttributeType("TSK_FILE_MESISHA256", BlackboardAttribute.TSK_BLACKBOARD_ATTRIBUTE_VALUE_TYPE.STRING, "SHA256")
             except:
-                attIdsha256 = skCase.getAttributeType("TSK_FILE_MESI256")		
-                self.log(Level.INFO, "Attributes Creation Error, TSK_FILE_MESI256 ==> ")
+                attIdsha256 = skCase.getAttributeType("TSK_FILE_MESISHA256")		
+                #self.log(Level.INFO, "Attributes Creation Error, TSK_FILE_MESISHA256 ==> ")
                 
             # Criacao de um atributo do SHA256 tipo string
             try:
                 attIdsha384 = skCase.addArtifactAttributeType("TSK_FILE_MESISHA384", BlackboardAttribute.TSK_BLACKBOARD_ATTRIBUTE_VALUE_TYPE.STRING, "SHA384")
             except:
-                attIdsha384 = skCase.getAttributeType("TSK_FILE_MESI384")		
-                self.log(Level.INFO, "Attributes Creation Error, TSK_FILE_MESI384 ==> ")
+                attIdsha384 = skCase.getAttributeType("TSK_FILE_MESISHA384")		
+                #self.log(Level.INFO, "Attributes Creation Error, TSK_FILE_MESISHA384 ==> ")
             
             # Criacao de um atributo do SHA512 tipo string
             try:
                 attIdsha512 = skCase.addArtifactAttributeType("TSK_FILE_MESISHA512", BlackboardAttribute.TSK_BLACKBOARD_ATTRIBUTE_VALUE_TYPE.STRING, "SHA512")
             except:
-                attIdsha512 = skCase.getAttributeType("TSK_FILE_MESI512")		
-                self.log(Level.INFO, "Attributes Creation Error, TSK_FILE_MESI512 ==> ")
+                attIdsha512 = skCase.getAttributeType("TSK_FILE_MESISHA512")		
+                #self.log(Level.INFO, "Attributes Creation Error, TSK_FILE_MESISHA512 ==> ")
                 
-
-            artifactName = "TSK_MESIHASH"
-            artId = skCase.getArtifactTypeID(artifactName)
-            
-            ######################
-            
-            art = file.newArtifact(BlackboardArtifact.ARTIFACT_TYPE.TSK_INTERESTING_FILE_HIT)                     
-            att = BlackboardAttribute(BlackboardAttribute.ATTRIBUTE_TYPE.TSK_SET_NAME,
-                                      MesiHash.moduleName, "Ficheiros Hash")
-                                      
-                                                 
-            art.addAttribute(att)
-
+            #Obtem o artefacto, por nome
+            artID = skCase.getArtifactTypeID("TSK_MESIHASH")
             try:
-                # index the artifact for keyword search
-                blackboard.indexArtifact(art)
-            except Blackboard.BlackboardException as e:
-                self.log(Level.SEVERE, "Error indexing artifact " + art.getDisplayName())
-                
-           
+               # Processamento - Calculo do sha256
+               sha256_hash = hashlib.sha256()
+               # Processamento - Calculo do sha1
+               sha1_hash = hashlib.sha1()
+               # Processamento - Calculo do sha224
+               sha224_hash = hashlib.sha224()
+               # Processamento - Calculo do sha384
+               sha384_hash = hashlib.sha384()
+               # Processamento - Calculo do sha512
+               sha512_hash = hashlib.sha512()
+               # Processamento - Calculo do md5
+               md5_hash = hashlib.md5()
             
-            # Processamento - Calculo do sha256
-            sha256_hash = hashlib.sha256()
-            # Processamento - Calculo do sha1
-            sha1_hash = hashlib.sha1()
-            # Processamento - Calculo do sha224
-            sha224_hash = hashlib.sha224()
-            # Processamento - Calculo do sha384
-            sha384_hash = hashlib.sha384()
-            # Processamento - Calculo do sha512
-            sha512_hash = hashlib.sha512()
-            # Processamento - Calculo do md5
-            md5_hash = hashlib.md5()
+               inputStream = ReadContentInputStream(file)            
             
-            inputStream = ReadContentInputStream(file)            
             
-            ### for byte_block in inputStream:
-            ###iter(lambda: inputStream.read(4096),b""):
-            ###    sha256_hash.update(byte_block)
-            ###    md5_hash.update(byte_block)
+               buffer = jarray.zeros(4096, "b")
+               totLen = 0
             
-            buffer = jarray.zeros(4096, "b")
-            totLen = 0
+               len = inputStream.read(buffer)
+               sha256_hash.update(buffer)
+               sha1_hash.update(buffer)
+               sha224_hash.update(buffer)
+               sha384_hash.update(buffer)
+               sha512_hash.update(buffer)
+               md5_hash.update(buffer)
             
-            len = inputStream.read(buffer)
-            sha256_hash.update(buffer)
-            sha1_hash.update(buffer)
-            sha224_hash.update(buffer)
-            sha384_hash.update(buffer)
-            sha512_hash.update(buffer)
-            md5_hash.update(buffer)
-            
-            while (len != -1):
-                    totLen = totLen + len                    
-                    len = inputStream.read(buffer)                    
-                    sha256_hash.update(buffer)
-                    sha224_hash.update(buffer)
-                    sha384_hash.update(buffer)
-                    sha512_hash.update(buffer)
-                    sha1_hash.update(buffer)
-                    md5_hash.update(buffer)
-
-
+               while (len != -1):
+                  totLen = totLen + len                    
+                  len = inputStream.read(buffer)                    
+                  sha256_hash.update(buffer)
+                  sha224_hash.update(buffer)
+                  sha384_hash.update(buffer)
+                  sha512_hash.update(buffer)
+                  sha1_hash.update(buffer)
+                  md5_hash.update(buffer)
+               
+            except Exception as e:
+               self.log(Level.SEVERE, "Erro a ler o ficheiro")
 
 
             #Para cada ficheiro adiciona um artefato
-            art = file.newArtifact(artId)            
+            #try:
+            art = file.newArtifact(artID)            
             art.addAttribute(BlackboardAttribute(attIdmd5, MesiHash.moduleName, md5_hash.hexdigest()))         
             art.addAttribute(BlackboardAttribute(attIdsha1, MesiHash.moduleName, sha1_hash.hexdigest()))     
             art.addAttribute(BlackboardAttribute(attIdsha224, MesiHash.moduleName, sha224_hash.hexdigest()))            
             art.addAttribute(BlackboardAttribute(attIdsha256, MesiHash.moduleName, sha256_hash.hexdigest()))
             art.addAttribute(BlackboardAttribute(attIdsha384, MesiHash.moduleName, sha384_hash.hexdigest()))
             art.addAttribute(BlackboardAttribute(attIdsha512, MesiHash.moduleName, sha512_hash.hexdigest()))
+            blackboard.indexArtifact(art)
+            #except Exception as e:
+            #   self.log(Level.SEVERE, "Error indexing artifact ")
 
-            #adiciona o artefato no blackboard
+                          
+            
             try:
-                # index the artifact for keyword search
-                blackboard.indexArtifact(art)
-            except Blackboard.BlackboardException as e:
-                self.log(Level.SEVERE, "Error indexing artifact " + art.getDisplayName())
-            IngestServices.getInstance().fireModuleDataEvent(
-                ModuleDataEvent(MesiHash.moduleName,
-                    BlackboardArtifact.ARTIFACT_TYPE.TSK_INTERESTING_ARTIFACT_HIT, None))
-
-            # Fire an event to notify the UI and others that there is a new artifact
-            IngestServices.getInstance().fireModuleDataEvent(
-                ModuleDataEvent(MesiHash.moduleName,
-                                BlackboardArtifact.ARTIFACT_TYPE.TSK_INTERESTING_FILE_HIT, None))
-
-
-            # For the example (this wouldn't be needed normally), we'll query the blackboard for data that was added
-            # by other modules. We then iterate over its attributes.  We'll just print them, but you would probably
-            # want to do something with them.
-            artifactList = file.getArtifacts(BlackboardArtifact.ARTIFACT_TYPE.TSK_INTERESTING_FILE_HIT)
-            for artifact in artifactList:
-                attributeList = artifact.getAttributes()
-                for attrib in attributeList:
-                    self.log(Level.INFO, attrib.toString())
+               IngestServices.getInstance().fireModuleDataEvent(
+                   ModuleDataEvent(MesiHash.moduleName,
+                      BlackboardArtifact.ARTIFACT_TYPE.TSK_INTERESTING_ARTIFACT_HIT, None))
+            except Exception as e:
+               self.log(Level.SEVERE, "Erro ao disparar o evento")
+            
         return IngestModule.ProcessResult.OK
 
     # Where any shutdown code is run and resources are freed.
