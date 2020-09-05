@@ -61,7 +61,14 @@ from org.sleuthkit.autopsy.casemodule.services import Blackboard
 from mailbox import _PartialFile
 import _hashlib
 from __builtin__ import str
-from javax.swing import JFrame, JLabel, JButton, JTextField
+
+# Imports GUI related
+from java.awt import Panel, BorderLayout, EventQueue, GridLayout, GridBagLayout, GridBagConstraints      
+from java.awt.event import ActionListener, ActionEvent 
+from javax.swing import JFrame, JLabel, JButton, JTextField, JComboBox, JTextField, JProgressBar, JMenuBar, JMenuItem, JTabbedPane, JPasswordField, JCheckBox, SwingConstants
+from javax.swing.border import TitledBorder
+from javax.swing.border import EmptyBorder  
+
 
 # Factory that defines the name and details of the module and allows Autopsy
 # to create instances of the modules that will do the anlaysis.
@@ -110,7 +117,7 @@ class MesiHashFileIngestModule(FileIngestModule):
         ttl = int(self.txt1.getText()) + int(self.txt2.getText())
         self.txt3.setText(str(ttl))
         
-    def guiTest():
+    def guiTest(self):
         frame = JFrame("Painel de configuracao")        
         self.log(Level.INFO, "DEBUG: Criei uma frame")
         #frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE)
