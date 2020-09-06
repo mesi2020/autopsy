@@ -63,12 +63,12 @@ from org.sleuthkit.autopsy.ingest import IngestModuleIngestJobSettingsPanel
 from org.sleuthkit.autopsy.ingest import IngestServices
 from org.sleuthkit.autopsy.ingest import ModuleDataEvent
 from org.sleuthkit.autopsy.ingest.IngestModule import IngestModuleException
-from org.sleuthkit.datamodel import AbstractFile
+from org.sleuthkit.datamodel import AbstractFile, TskData
+#$DbType
 from org.sleuthkit.datamodel import BlackboardArtifact
 from org.sleuthkit.datamodel import BlackboardAttribute
 from org.sleuthkit.datamodel import ReadContentInputStream
 from org.sleuthkit.datamodel import SleuthkitCase
-from org.sleuthkit.datamodel import TskData
 import _hashlib
 import inspect
 import jarray
@@ -99,17 +99,16 @@ class MesiHash(IngestModuleFactoryAdapter):
     # Return true if module wants to get called for each file
     def isFileIngestModuleFactory(self):
         return True
-    
-    # Settings and GUI panel
+
     def getDefaultIngestJobSettings(self):
         return GenericIngestModuleJobSettings()
-
+   
     def hasIngestJobSettingsPanel(self):
         return True
     
     def getIngestJobSettingsPanel(self, settings):
         #if not isinstance(settings, GenericIngestModuleJobSettings):
-        #    raise IllegalArgumentException("Expected settings argument to be instanceof GenericIngestModuleJobSettings")
+        #    raise IllegalArgumentException("MESI: Expected settings argument to be instanceof GenericIngestModuleJobSettings")
         self.settings = settings
         return MesiPanel(self.settings)
         #pass
@@ -327,12 +326,46 @@ class MesiPanel(IngestModuleIngestJobSettingsPanel):
         self.customizeComponents()
 
     # TODO: Update this for your UI
-    def checkBoxEvent(self, event):
-        if self.checkbox.isSelected():
-            self.local_settings.setSetting("flag", "true")
+    def cMD5Event(self, event):
+        if self.cMD5.isSelected():
+            self.local_settings.setSetting("md5", "true")
         else:
-            self.local_settings.setSetting("flag", "false")
+            self.local_settings.setSetting("md5", "false")
 
+# TODO: Update this for your UI
+    def cSHA1Event(self, event):
+        if self.cSHA1.isSelected():
+            self.local_settings.setSetting("sha1", "true")
+        else:
+            self.local_settings.setSetting("Sha1", "false")
+
+    def cSHA256Event(self, event):
+        if self.cSHA256.isSelected():
+            self.local_settings.setSetting("sha256", "true")
+        else:
+            self.local_settings.setSetting("Sha256", "false")
+
+
+    def cSHA384Event(self, event):
+        if self.cSHA384.isSelected():
+            self.local_settings.setSetting("sha384", "true")
+        else:
+            self.local_settings.setSetting("Sha384", "false")
+
+
+    def cSHA512Event(self, event):
+        if self.cSHA512.isSelected():
+            self.local_settings.setSetting("sha512", "true")
+        else:
+            self.local_settings.setSetting("Sha512", "false")
+
+    def cTAGGED_FILESEvent(self, event):
+        if self.cSHA512.isSelected():
+            self.local_settings.setSetting("tagged_files", "true")
+        else:
+            self.local_settings.setSetting("tagget_files", "false")
+
+    
     # TODO: Update this for your UI
     def initComponents(self):
         
@@ -352,10 +385,10 @@ class MesiPanel(IngestModuleIngestJobSettingsPanel):
         lblNewLabel_1.setBounds(10, 33, 243, 14)
         self.add(lblNewLabel_1);
         
-        cTAGGED_FILES = JCheckBox("PROCESS ONLY TAGGED FILES")
-        cTAGGED_FILES.setSelected(True)
-        cTAGGED_FILES.setBounds(10, 202, 193, 23)
-        self.add(cTAGGED_FILES)
+        self.cTAGGED_FILES = JCheckBox("PROCESS ONLY TAGGED FILES", actionPerformed=self.cTAGGED_FILESEvent)
+        self.cTAGGED_FILES.setSelected(True)
+        self.cTAGGED_FILES.setBounds(10, 202, 193, 23)
+        self.add(self.cTAGGED_FILES)
         
         panel = JPanel(None)
         panel.setLayout(None)
@@ -363,25 +396,25 @@ class MesiPanel(IngestModuleIngestJobSettingsPanel):
         panel.setBounds(10, 56, 222, 139)
         self.add(panel)
         
-        cMD5 = JCheckBox("MD5 - RFC 1321")
-        cMD5.setBounds(6, 16, 147, 23)
-        panel.add(cMD5)
+        self.cMD5 = JCheckBox("MD5 - RFC 1321", actionPerformed=self.cMD5Event)
+        self.cMD5.setBounds(6, 16, 147, 23)
+        panel.add(self.cMD5)
         
-        cSHA1 = JCheckBox("SHA1 - FIPS PUB 180-2")
-        cSHA1.setBounds(6, 39, 180, 23);
-        panel.add(cSHA1)
+        self.cSHA1 = JCheckBox("SHA1 - FIPS PUB 180-2", actionPerformed=self.cSHA1Event)
+        self.cSHA1.setBounds(6, 39, 180, 23);
+        panel.add(self.cSHA1)
         
-        cSHA256 = JCheckBox("SHA256 - FIPS PUB 180-2")
-        cSHA256.setBounds(6, 62, 180, 23)
-        panel.add(cSHA256)
+        self.cSHA256 = JCheckBox("SHA256 - FIPS PUB 180-2", actionPerformed=self.cSHA256Event)
+        self.cSHA256.setBounds(6, 62, 180, 23)
+        panel.add(self.cSHA256)
         
-        cSHA384 = JCheckBox("SHA384 - FIPS PUB 180-2")
-        cSHA384.setBounds(6, 86, 180, 23)
-        panel.add(cSHA384)
+        self.cSHA384 = JCheckBox("SHA384 - FIPS PUB 180-2",actionPerformed=self.cSHA384Event)
+        self.cSHA384.setBounds(6, 86, 180, 23)
+        panel.add(self.cSHA384)
         
-        cSHA512 = JCheckBox("SHA512 - FIPS PUB 180-2")
-        cSHA512.setBounds(6, 109, 180, 23)
-        panel.add(cSHA512)
+        self.cSHA512 = JCheckBox("SHA512 - FIPS PUB 180-2",actionPerformed=self.cSHA512Event)
+        self.cSHA512.setBounds(6, 109, 180, 23)
+        panel.add(self.cSHA512)
         
         lblWarningHashCalculation = JLabel("Warning: Hash calculation is time consuming. ")
         lblWarningHashCalculation.setBounds(10, 5, 416, 23)
@@ -396,7 +429,8 @@ class MesiPanel(IngestModuleIngestJobSettingsPanel):
     # TODO: Update this for your UI
     def customizeComponents(self):
         try:
-            self.checkbox.setSelected(self.local_settings.getSetting("flag") == "true")
+            self.cSHA1.setSelected(self.local_settings.getSettings("sha1") == "true")
+            self.cMD5.setSelected(self.local_settings.getSetting("md5") == "true")                        
         except:
             pass
         
