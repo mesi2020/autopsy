@@ -33,10 +33,39 @@
 # Search for TODO for the things that you need to change
 # See http://sleuthkit.org/autopsy/docs/api-docs/4.6.0/index.html for documentation
 
-import hashlib
+#import hashlib
+
+import jarray
+import inspect
+from java.lang import System
+from java.util.logging import Level
+from javax.swing import JCheckBox
+from javax.swing import BoxLayout
+from org.sleuthkit.autopsy.casemodule import Case
+from org.sleuthkit.autopsy.casemodule.services import Services
+from org.sleuthkit.autopsy.ingest import DataSourceIngestModule
+from org.sleuthkit.autopsy.ingest import FileIngestModule
+from org.sleuthkit.autopsy.ingest import GenericIngestModuleJobSettings
+from org.sleuthkit.autopsy.ingest import IngestMessage
+from org.sleuthkit.autopsy.ingest import IngestModule
+from org.sleuthkit.autopsy.ingest.IngestModule import IngestModuleException
+from org.sleuthkit.autopsy.ingest import IngestModuleFactoryAdapter
+from org.sleuthkit.autopsy.ingest import IngestModuleIngestJobSettings
+from org.sleuthkit.autopsy.ingest import IngestModuleIngestJobSettingsPanel
+from org.sleuthkit.autopsy.ingest import IngestServices
+from org.sleuthkit.autopsy.ingest import IngestModuleGlobalSettingsPanel
+from org.sleuthkit.datamodel import BlackboardArtifact
+from org.sleuthkit.datamodel import BlackboardAttribute
+from org.sleuthkit.datamodel import ReadContentInputStream
+from org.sleuthkit.autopsy.coreutils import Logger
+from java.lang import IllegalArgumentException
+
+
+
 from org.apache.commons.codec.digest import DigestUtils
 import jarray
 import inspect
+
 from java.lang import System
 from java.util.logging import Level
 from org.sleuthkit.datamodel import SleuthkitCase
@@ -45,27 +74,33 @@ from org.sleuthkit.datamodel import ReadContentInputStream
 from org.sleuthkit.datamodel import BlackboardArtifact
 from org.sleuthkit.datamodel import BlackboardAttribute
 from org.sleuthkit.datamodel import TskData
+
+from org.sleuthkit.autopsy.ingest import IngestMessage
 from org.sleuthkit.autopsy.ingest import IngestModule
 from org.sleuthkit.autopsy.ingest.IngestModule import IngestModuleException
+from org.sleuthkit.autopsy.ingest import IngestModuleFactoryAdapter
+from org.sleuthkit.autopsy.ingest import IngestModuleIngestJobSettings
+from org.sleuthkit.autopsy.ingest import IngestModuleIngestJobSettingsPanel
+from org.sleuthkit.autopsy.ingest import IngestServices
+from org.sleuthkit.autopsy.ingest import GenericIngestModuleJobSettings
+
 from org.sleuthkit.autopsy.ingest import DataSourceIngestModule
 from org.sleuthkit.autopsy.ingest import FileIngestModule
-from org.sleuthkit.autopsy.ingest import IngestModuleFactoryAdapter
-from org.sleuthkit.autopsy.ingest import IngestMessage
-from org.sleuthkit.autopsy.ingest import IngestServices
 from org.sleuthkit.autopsy.ingest import ModuleDataEvent
 from org.sleuthkit.autopsy.coreutils import Logger
 from org.sleuthkit.autopsy.casemodule import Case
 from org.sleuthkit.autopsy.casemodule.services import Services
 from org.sleuthkit.autopsy.casemodule.services import FileManager
 from org.sleuthkit.autopsy.casemodule.services import Blackboard
+from org.sleuthkit.autopsy.ingest import IngestModuleIngestJobSettingsPanel
 from mailbox import _PartialFile
 import _hashlib
 from __builtin__ import str
 
 # Imports GUI related
-from java.awt import Panel, BorderLayout, EventQueue, GridLayout, GridBagLayout, GridBagConstraints      
+from java.awt import Panel, BorderLayout, EventQueue, GridLayout, GridBagLayout, GridBagConstraints, Font, Color      
 from java.awt.event import ActionListener, ActionEvent 
-from javax.swing import JFrame, JLabel, JButton, JTextField, JComboBox, JTextField, JProgressBar, JMenuBar, JMenuItem, JTabbedPane, JPasswordField, JCheckBox, SwingConstants
+from javax.swing import JFrame, JLabel, JButton, JTextField, JComboBox, JTextField, JProgressBar, JMenuBar, JMenuItem, JTabbedPane, JPasswordField, JCheckBox, SwingConstants, BoxLayout
 from javax.swing.border import TitledBorder
 from javax.swing.border import EmptyBorder  
 
@@ -75,16 +110,17 @@ from javax.swing.border import EmptyBorder
 # TODO: Rename this to something more specific.  Search and replace for it because it is used a few times
 # TODO: 1) Substituir o nome do modulo
 class MesiHash(IngestModuleFactoryAdapter):
-
-    # TODO: give it a unique name.  Will be shown in module list, logs, etc.
-    moduleName = "Mesi Hash It All"
+    def __init__(self):
+        self.settings = None
+        
+    moduleName = "Mesi: Hash It All"
 
     def getModuleDisplayName(self):
         return self.moduleName
 
     # TODO: Give it a description
     def getModuleDescription(self):
-        return "Hash with md5, sha1, sha224, sha256, sha384, sha512"
+        return "Hash with md5, sha1, sha256, sha384, sha512"
 
     def getModuleVersionNumber(self):
         return "0.1"
@@ -92,10 +128,25 @@ class MesiHash(IngestModuleFactoryAdapter):
     # Return true if module wants to get called for each file
     def isFileIngestModuleFactory(self):
         return True
+    
+    # Settings and GUI panel
+    def getDefaultIngestJobSettings(self):
+        return GenericIngestModuleJobSettings()
 
+    def hasIngestJobSettingsPanel(self):
+        return True
+    
+    def getIngestJobSettingsPanel(self, settings):
+        #if not isinstance(settings, GenericIngestModuleJobSettings):
+        #    raise IllegalArgumentException("Expected settings argument to be instanceof GenericIngestModuleJobSettings")
+        self.settings = settings
+        return MesiPanel(self.settings)
+        #pass
+    # TODO: Update class name to one that you create below
     # can return null if isFileIngestModuleFactory returns false
+    
     def createFileIngestModule(self, ingestOptions):
-        return MesiHashFileIngestModule()
+        return MesiHashFileIngestModule(self.settings)
 
 
 # File-level ingest module.  One gets created per thread.
@@ -103,52 +154,20 @@ class MesiHash(IngestModuleFactoryAdapter):
 # Looks at the attributes of the passed in file.
 class MesiHashFileIngestModule(FileIngestModule):
 
+    # Autopsy will pass in the settings from the UI panel
+    def __init__(self, settings):
+        self.local_settings = settings
+
     _logger = Logger.getLogger(MesiHash.moduleName)
 
     def log(self, level, msg):
         self._logger.logp(level, self.__class__.__name__, inspect.stack()[1][3], msg)
 
+        
     # Where any setup and configuration is done
     # 'context' is an instance of org.sleuthkit.autopsy.ingest.IngestJobContext.
     # See: http://sleuthkit.org/autopsy/docs/api-docs/4.6.0/classorg_1_1sleuthkit_1_1autopsy_1_1ingest_1_1_ingest_job_context.html
     # TODO: Add any setup code that you need here.
-    def addNumbers(self, event):
-        print "add"
-        ttl = int(self.txt1.getText()) + int(self.txt2.getText())
-        self.txt3.setText(str(ttl))
-        
-    def guiTest(self):
-        frame = JFrame("Painel de configuracao")        
-        self.log(Level.INFO, "DEBUG: Criei uma frame")
-        #frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE)
-        #frame.setLocation(100,100)
-        frame.setSize(1024,768)
-        frame.setLayout(None)
-
-        lbl1 = JLabel("Phy")
-        lbl1.setBounds(60,20,40,20)
-        self.txt1 = JTextField(10)
-        self.txt1.setBounds(120,20,60,20)
-        lbl2 = JLabel("Maths")
-        lbl2.setBounds(60,50,40,20)
-        self.txt2 = JTextField(10)
-        self.txt2.setBounds(120, 50, 60,20)
-        btn = JButton("Add", actionPerformed = self.addNumbers)
-        btn.setBounds(60,80,60,20)
-        lbl3 = JLabel("Total")
-        lbl3.setBounds(60,110,40,20)
-        self.txt3 = JTextField(10)
-        self.txt3.setBounds(120, 110, 60,20)
-        frame.add(lbl1)
-        frame.add(self.txt1)
-        frame.add(lbl2)
-        frame.add(self.txt2)
-        frame.add(btn)
-        frame.add(lbl3)
-        frame.add(self.txt3)
-
-        frame.setVisible(True)
-        self.log(Level.INFO, "DEBUG: Ate aqui tudo bem")
         
     def startUp(self, context):
         self.filesFound = 0
@@ -166,9 +185,7 @@ class MesiHashFileIngestModule(FileIngestModule):
     def process(self, file):
         # Skip non-files
         skCase = Case.getCurrentCase().getSleuthkitCase();
-        
-        sha256_hash = hashlib.sha256()
-                
+                        
         if ((file.getType() == TskData.TSK_DB_FILES_TYPE_ENUM.UNALLOC_BLOCKS) or
             (file.getType() == TskData.TSK_DB_FILES_TYPE_ENUM.UNUSED_BLOCKS) or
             (file.isFile() == False)):
@@ -209,14 +226,7 @@ class MesiHashFileIngestModule(FileIngestModule):
             except:
                 attIdsha1 = skCase.getAttributeType("TSK_FILE_MESISHA1")		
                 #self.log(Level.INFO, "Attributes Creation Error, TSK_FILE_MESISHA1 ==> ")
-                
-            # Criacao de um atributo do SHA224 tipo string
-            #try:
-            #    attIdsha224 = skCase.addArtifactAttributeType("TSK_FILE_MESISHA224", BlackboardAttribute.TSK_BLACKBOARD_ATTRIBUTE_VALUE_TYPE.STRING, "SHA224")
-            #except:
-            #    attIdsha224 = skCase.getAttributeType("TSK_FILE_MESISHA224")		
-                #self.log(Level.INFO, "Attributes Creation Error, TSK_FILE_MESISHA224 ==> ")
-                
+                                
             # Criacao de um atributo do SHA256 tipo string
             try:
                 attIdsha256 = skCase.addArtifactAttributeType("TSK_FILE_MESISHA256", BlackboardAttribute.TSK_BLACKBOARD_ATTRIBUTE_VALUE_TYPE.STRING, "SHA256")
@@ -241,122 +251,77 @@ class MesiHashFileIngestModule(FileIngestModule):
             #Obtem o artefacto, por nome
             artID = skCase.getArtifactTypeID("TSK_MESIHASH")
             md5_hash = ""
-            sha1_hash = ""
-            sha224_hash = ""
+            sha1_hash = ""            
             sha256_hash = ""
             sha384_hash = ""
             sha512_hash = ""
                
             try:
-               # Processamento - Calculo do sha256
-               #sha256_hash = hashlib.sha256()
-               # Processamento - Calculo do sha1
-               #sha1_hash = hashlib.sha1()
-               # Processamento - Calculo do sha224
-               #sha224_hash = hashlib.sha224()
-               # Processamento - Calculo do sha384
-               #sha384_hash = hashlib.sha384()
-               # Processamento - Calculo do sha512
-               #sha512_hash = hashlib.sha512()
-               # Processamento - Calculo do md5
-               #md5_hash = hashlib.md5()
                         
-               try:
-                  inputStream = ReadContentInputStream(file)
-                  sha512_hash = DigestUtils.sha512Hex(inputStream)
-                  self.log(Level.INFO, "sha512Hex")
-               except Exception as e:
-                   sha512_hash=""
-                   self.log(Level.SEVERE, "Erro a calcular sha512Hex")
+                try:
+                    inputStream = ReadContentInputStream(file)
+                    sha512_hash = DigestUtils.sha512Hex(inputStream)
+                    self.log(Level.INFO, "sha512Hex")
+                except Exception as e:
+                    sha512_hash=""
+                    self.log(Level.SEVERE, "Erro a calcular sha512Hex")
 
-               try:
-                  inputStream = ReadContentInputStream(file)
-                  sha256_hash = DigestUtils.sha256Hex(inputStream)
-                  self.log(Level.INFO, "sha256Hex")
-               except Exception as e:
-                   sha256_hash=""
-                   self.log(Level.SEVERE, "Erro a calcular sha256Hex")
+                try:
+                    inputStream = ReadContentInputStream(file)
+                    sha256_hash = DigestUtils.sha256Hex(inputStream)
+                    self.log(Level.INFO, "sha256Hex")
+                except Exception as e:
+                    sha256_hash=""
+                    self.log(Level.SEVERE, "Erro a calcular sha256Hex")
                
-               try:
-                   inputStream = ReadContentInputStream(file)
-                   sha384_hash = DigestUtils.sha384Hex(inputStream)
-                   self.log(Level.INFO, "sha384Hex")
-               except Exception as e:
-                   sha384_hash=""
-                   self.log(Level.SEVERE, "Erro a calcular sha384Hex")
+                try:
+                    inputStream = ReadContentInputStream(file)
+                    sha384_hash = DigestUtils.sha384Hex(inputStream)
+                    self.log(Level.INFO, "sha384Hex")
+                except Exception as e:
+                    sha384_hash=""
+                    self.log(Level.SEVERE, "Erro a calcular sha384Hex")
+                            
                
-               #try:
-               #    inputStream = ReadContentInputStream(file)   
-               #    sha224_hash = DigestUtils.sha224Hex(inputStream)
-               #    self.log(Level.INFO, "sha224Hex")
-               #except Exception as e:
-               #    sha224_hash=""
-               #    self.log(Level.SEVERE, "Erro a calcular sha224Hex")
+                try:
+                    inputStream = ReadContentInputStream(file)            
+                    md5_hash = DigestUtils.md5Hex(inputStream)
+                    self.log(Level.INFO, "md5Hex")
+                except Exception as e:
+                    md5_hash=""
+                    self.log(Level.SEVERE, "Erro a calcular md5Hex")
                
-               try:
-                   inputStream = ReadContentInputStream(file)            
-                   md5_hash = DigestUtils.md5Hex(inputStream)
-                   self.log(Level.INFO, "md5Hex")
-               except Exception as e:
-                   shamd5_hash=""
-                   self.log(Level.SEVERE, "Erro a calcular md5Hex")
-               
-               try: 
-                   inputStream = ReadContentInputStream(file)                                 
-                   sha1_hash = DigestUtils.sha1Hex(inputStream)
-                   self.log(Level.INFO, "sha1Hex")
-               except Exception as e:
-                   sha1_hash=""
-                   self.log(Level.SEVERE, "Erro a calcular sha1Hex")
+                try: 
+                    inputStream = ReadContentInputStream(file)                                 
+                    sha1_hash = DigestUtils.sha1Hex(inputStream)
+                    self.log(Level.INFO, "sha1Hex")
+                except Exception as e:
+                    sha1_hash=""
+                    self.log(Level.SEVERE, "Erro a calcular sha1Hex")
                
                
             
-               #buffer = jarray.zeros(4096, "b")
-               #totLen = 0
-            
-               #len = inputStream.read(buffer)
-               #sha256_hash.update(buffer)
-               #sha1_hash.update(buffer)
-               #sha224_hash.update(buffer)
-               #sha384_hash.update(buffer)
-               #sha512_hash.update(buffer)
-               #md5_hash.update(buffer)
-            
-               #while (len != -1):
-               #   totLen = totLen + len                    
-               #   len = inputStream.read(buffer)                    
-               #   sha256_hash.update(buffer)
-               #   sha224_hash.update(buffer)
-               #   sha384_hash.update(buffer)
-               #   sha512_hash.update(buffer)
-               #   sha1_hash.update(buffer)
-                  #md5_hash.update(buffer)
                
             except Exception as e:
-               self.log(Level.SEVERE, "Erro a ler o ficheiro")
+                self.log(Level.SEVERE, "Erro a ler o ficheiro")
 
 
             #Para cada ficheiro adiciona um artefato
-            #try:
+            
             art = file.newArtifact(artID)            
             art.addAttribute(BlackboardAttribute(attIdmd5, MesiHash.moduleName, md5_hash))         
             art.addAttribute(BlackboardAttribute(attIdsha1, MesiHash.moduleName, sha1_hash))     
-            #art.addAttribute(BlackboardAttribute(attIdsha224, MesiHash.moduleName, sha224_hash))            
             art.addAttribute(BlackboardAttribute(attIdsha256, MesiHash.moduleName, sha256_hash))
             art.addAttribute(BlackboardAttribute(attIdsha384, MesiHash.moduleName, sha384_hash))
             art.addAttribute(BlackboardAttribute(attIdsha512, MesiHash.moduleName, sha512_hash))
             blackboard.indexArtifact(art)
-            #except Exception as e:
-            #   self.log(Level.SEVERE, "Error indexing artifact ")
-
-                          
             
             try:
-               IngestServices.getInstance().fireModuleDataEvent(
+                IngestServices.getInstance().fireModuleDataEvent(
                    ModuleDataEvent(MesiHash.moduleName,
                       BlackboardArtifact.ARTIFACT_TYPE.TSK_INTERESTING_ARTIFACT_HIT, None))
             except Exception as e:
-               self.log(Level.SEVERE, "Erro ao disparar o evento")
+                self.log(Level.SEVERE, "Erro ao disparar o evento")
             
         return IngestModule.ProcessResult.OK
 
@@ -368,3 +333,95 @@ class MesiHashFileIngestModule(FileIngestModule):
             IngestMessage.MessageType.DATA, MesiHash.moduleName,
                 str(self.filesFound) + " files found")
         ingestServices = IngestServices.getInstance().postMessage(message)
+
+
+#Settings GUI
+
+class MesiPanel(IngestModuleIngestJobSettingsPanel):
+    # Note, we can't use a self.settings instance variable.
+    # Rather, self.local_settings is used.
+    # https://wiki.python.org/jython/UserGuide#javabean-properties
+    # Jython Introspector generates a property - 'settings' on the basis
+    # of getSettings() defined in this class. Since only getter function
+    # is present, it creates a read-only 'settings' property. This auto-
+    # generated read-only property overshadows the instance-variable -
+    # 'settings'
+
+    # We get passed in a previous version of the settings so that we can
+    # prepopulate the UI
+    # TODO: Update this for your UI
+    def __init__(self, settings):
+        self.local_settings = settings
+        self.initComponents()
+        self.customizeComponents()
+
+    # TODO: Update this for your UI
+    def checkBoxEvent(self, event):
+        if self.checkbox.isSelected():
+            self.local_settings.setSetting("flag", "true")
+        else:
+            self.local_settings.setSetting("flag", "false")
+
+    # TODO: Update this for your UI
+    def initComponents(self):
+        self.setBorder(TitledBorder(None, "Digest Algorithms", TitledBorder.LEADING, TitledBorder.TOP, None, None))
+        self.setBounds(139, 88, 109, 193)
+        #getContentPane().add(self)
+        self.setLayout(None)
+        
+        chckbxMD5 = JCheckBox("MD5");
+        chckbxMD5.setBounds(6, 16, 97, 23)
+        self.add(chckbxMD5)
+        
+        chckbxSHA1 = JCheckBox("SHA1")
+        chckbxSHA1.setBounds(6, 53, 97, 23);
+        self.add(chckbxSHA1);
+         
+        chckbxSHA2_256 = JCheckBox("SHA2-256");
+        chckbxSHA2_256.setBounds(6, 90, 97, 23);
+        self.add(chckbxSHA2_256);
+         
+        chckbxSHA2_384 = JCheckBox("SHA2-384");
+        chckbxSHA2_384.setBounds(6, 127, 97, 23);
+        self.add(chckbxSHA2_384);
+         
+        chckbxSHA2_512 = JCheckBox("SHA2-512");
+        chckbxSHA2_512.setBounds(6, 164, 97, 23);
+        self.add(chckbxSHA2_512);
+         
+        chckbxTAGGED_FILES = JCheckBox("PROCESS ONLY TAGGED FILES");
+        chckbxTAGGED_FILES.setSelected(True);
+        chckbxTAGGED_FILES.setBounds(100, 289, 193, 23);
+        self.add(chckbxTAGGED_FILES);
+         
+        lblNewLabel = JLabel("MESI HASH IT ALL: Hash calculation is very computing intesive. Select only needed ");
+        lblNewLabel.setHorizontalAlignment(SwingConstants.LEFT);
+        lblNewLabel.setBounds(10, 11, 416, 23);
+        self.add(lblNewLabel);
+#         
+        lblNewLabel_1 = JLabel("hash algorithms.");
+        lblNewLabel_1.setHorizontalAlignment(SwingConstants.LEFT);
+        lblNewLabel_1.setBounds(10, 33, 106, 14);
+        self.add(lblNewLabel_1);
+         
+        lblNewLabel_2 = JLabel("It will take a while to process.... Please be patient");
+        lblNewLabel_2.setFont(Font("Tahoma", Font.BOLD, 14));
+        lblNewLabel_2.setHorizontalAlignment(SwingConstants.LEFT);
+        lblNewLabel_2.setLabelFor(self);
+        lblNewLabel_2.setBackground(Color.YELLOW);
+        lblNewLabel_2.setBounds(40, 319, 347, 52);
+        self.add(lblNewLabel_2);
+ 
+#         
+
+    # TODO: Update this for your UI
+    def customizeComponents(self):
+        try:
+            self.checkbox.setSelected(self.local_settings.getSetting("flag") == "true")
+        except:
+            pass
+        
+
+    # Return the settings used
+    def getSettings(self):
+        return self.local_settings
