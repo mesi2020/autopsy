@@ -33,75 +33,46 @@
 # Search for TODO for the things that you need to change
 # See http://sleuthkit.org/autopsy/docs/api-docs/4.6.0/index.html for documentation
 
-#import hashlib
-
-import jarray
-import inspect
-from java.lang import System
-from java.util.logging import Level
-from javax.swing import JCheckBox
-from javax.swing import BoxLayout
-from org.sleuthkit.autopsy.casemodule import Case
-from org.sleuthkit.autopsy.casemodule.services import Services
-from org.sleuthkit.autopsy.ingest import DataSourceIngestModule
-from org.sleuthkit.autopsy.ingest import FileIngestModule
-from org.sleuthkit.autopsy.ingest import GenericIngestModuleJobSettings
-from org.sleuthkit.autopsy.ingest import IngestMessage
-from org.sleuthkit.autopsy.ingest import IngestModule
-from org.sleuthkit.autopsy.ingest.IngestModule import IngestModuleException
-from org.sleuthkit.autopsy.ingest import IngestModuleFactoryAdapter
-from org.sleuthkit.autopsy.ingest import IngestModuleIngestJobSettings
-from org.sleuthkit.autopsy.ingest import IngestModuleIngestJobSettingsPanel
-from org.sleuthkit.autopsy.ingest import IngestServices
-from org.sleuthkit.autopsy.ingest import IngestModuleGlobalSettingsPanel
-from org.sleuthkit.datamodel import BlackboardArtifact
-from org.sleuthkit.datamodel import BlackboardAttribute
-from org.sleuthkit.datamodel import ReadContentInputStream
-from org.sleuthkit.autopsy.coreutils import Logger
-from java.lang import IllegalArgumentException
-
-
-
-from org.apache.commons.codec.digest import DigestUtils
-import jarray
-import inspect
-
-from java.lang import System
-from java.util.logging import Level
-from org.sleuthkit.datamodel import SleuthkitCase
-from org.sleuthkit.datamodel import AbstractFile
-from org.sleuthkit.datamodel import ReadContentInputStream
-from org.sleuthkit.datamodel import BlackboardArtifact
-from org.sleuthkit.datamodel import BlackboardAttribute
-from org.sleuthkit.datamodel import TskData
-
-from org.sleuthkit.autopsy.ingest import IngestMessage
-from org.sleuthkit.autopsy.ingest import IngestModule
-from org.sleuthkit.autopsy.ingest.IngestModule import IngestModuleException
-from org.sleuthkit.autopsy.ingest import IngestModuleFactoryAdapter
-from org.sleuthkit.autopsy.ingest import IngestModuleIngestJobSettings
-from org.sleuthkit.autopsy.ingest import IngestModuleIngestJobSettingsPanel
-from org.sleuthkit.autopsy.ingest import IngestServices
-from org.sleuthkit.autopsy.ingest import GenericIngestModuleJobSettings
-
-from org.sleuthkit.autopsy.ingest import DataSourceIngestModule
-from org.sleuthkit.autopsy.ingest import FileIngestModule
-from org.sleuthkit.autopsy.ingest import ModuleDataEvent
-from org.sleuthkit.autopsy.coreutils import Logger
-from org.sleuthkit.autopsy.casemodule import Case
-from org.sleuthkit.autopsy.casemodule.services import Services
-from org.sleuthkit.autopsy.casemodule.services import FileManager
-from org.sleuthkit.autopsy.casemodule.services import Blackboard
-from org.sleuthkit.autopsy.ingest import IngestModuleIngestJobSettingsPanel
-from mailbox import _PartialFile
-import _hashlib
 from __builtin__ import str
-
-# Imports GUI related
 from java.awt import Panel, BorderLayout, EventQueue, GridLayout, GridBagLayout, GridBagConstraints, Font, Color      
 from java.awt.event import ActionListener, ActionEvent 
+from java.lang import IllegalArgumentException
+from java.lang import System
+from java.util.logging import Level
+from javax.swing import BoxLayout
+from javax.swing import JCheckBox
 from javax.swing import JFrame, JLabel, JButton, JTextField, JComboBox, JTextField, JProgressBar, JMenuBar, JMenuItem, JTabbedPane, JPasswordField, JCheckBox, SwingConstants, BoxLayout, JPanel
 from javax.swing.border import TitledBorder, EtchedBorder, EmptyBorder
+from mailbox import _PartialFile
+from org.apache.commons.codec.digest import DigestUtils
+from org.sleuthkit.autopsy.casemodule import Case
+from org.sleuthkit.autopsy.casemodule import Case
+from org.sleuthkit.autopsy.casemodule.services import Blackboard
+from org.sleuthkit.autopsy.casemodule.services import FileManager
+from org.sleuthkit.autopsy.casemodule.services import Services
+from org.sleuthkit.autopsy.coreutils import Logger
+from org.sleuthkit.autopsy.ingest import DataSourceIngestModule
+from org.sleuthkit.autopsy.ingest import FileIngestModule
+from org.sleuthkit.autopsy.ingest import GenericIngestModuleJobSettings
+from org.sleuthkit.autopsy.ingest import IngestMessage
+from org.sleuthkit.autopsy.ingest import IngestModule
+from org.sleuthkit.autopsy.ingest import IngestModuleFactoryAdapter
+from org.sleuthkit.autopsy.ingest import IngestModuleGlobalSettingsPanel
+from org.sleuthkit.autopsy.ingest import IngestModuleIngestJobSettings
+from org.sleuthkit.autopsy.ingest import IngestModuleIngestJobSettingsPanel
+from org.sleuthkit.autopsy.ingest import IngestServices
+from org.sleuthkit.autopsy.ingest import ModuleDataEvent
+from org.sleuthkit.autopsy.ingest.IngestModule import IngestModuleException
+from org.sleuthkit.datamodel import AbstractFile
+from org.sleuthkit.datamodel import BlackboardArtifact
+from org.sleuthkit.datamodel import BlackboardAttribute
+from org.sleuthkit.datamodel import ReadContentInputStream
+from org.sleuthkit.datamodel import SleuthkitCase
+from org.sleuthkit.datamodel import TskData
+import _hashlib
+import inspect
+import jarray
+
 
 
 
