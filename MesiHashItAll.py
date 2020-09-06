@@ -100,9 +100,9 @@ from __builtin__ import str
 # Imports GUI related
 from java.awt import Panel, BorderLayout, EventQueue, GridLayout, GridBagLayout, GridBagConstraints, Font, Color      
 from java.awt.event import ActionListener, ActionEvent 
-from javax.swing import JFrame, JLabel, JButton, JTextField, JComboBox, JTextField, JProgressBar, JMenuBar, JMenuItem, JTabbedPane, JPasswordField, JCheckBox, SwingConstants, BoxLayout
-from javax.swing.border import TitledBorder
-from javax.swing.border import EmptyBorder  
+from javax.swing import JFrame, JLabel, JButton, JTextField, JComboBox, JTextField, JProgressBar, JMenuBar, JMenuItem, JTabbedPane, JPasswordField, JCheckBox, SwingConstants, BoxLayout, JPanel
+from javax.swing.border import TitledBorder, EtchedBorder, EmptyBorder
+
 
 
 # Factory that defines the name and details of the module and allows Autopsy
@@ -113,7 +113,7 @@ class MesiHash(IngestModuleFactoryAdapter):
     def __init__(self):
         self.settings = None
         
-    moduleName = "Mesi: Hash It All"
+    moduleName = "Mesi: Multi Digest Hash"
 
     def getModuleDisplayName(self):
         return self.moduleName
@@ -123,7 +123,7 @@ class MesiHash(IngestModuleFactoryAdapter):
         return "Hash with md5, sha1, sha256, sha384, sha512"
 
     def getModuleVersionNumber(self):
-        return "0.1"
+        return "0.5"
 
     # Return true if module wants to get called for each file
     def isFileIngestModuleFactory(self):
@@ -364,54 +364,62 @@ class MesiPanel(IngestModuleIngestJobSettingsPanel):
 
     # TODO: Update this for your UI
     def initComponents(self):
-        self.setBorder(TitledBorder(None, "Digest Algorithms", TitledBorder.LEADING, TitledBorder.TOP, None, None))
-        self.setBounds(139, 88, 109, 193)
-        #getContentPane().add(self)
+        
+        
         self.setLayout(None)
         
-        chckbxMD5 = JCheckBox("MD5");
-        chckbxMD5.setBounds(6, 16, 97, 23)
-        self.add(chckbxMD5)
+        lblNewLabel_2 = JLabel("May take a while... Please be patient")
+        lblNewLabel_2.setHorizontalAlignment(SwingConstants.LEFT)
+        lblNewLabel_2.setFont(Font("Tahoma", Font.BOLD, 14))
+        lblNewLabel_2.setBackground(Color.YELLOW)
+        lblNewLabel_2.setBounds(10, 227, 347, 23)
+        self.add(lblNewLabel_2)
         
-        chckbxSHA1 = JCheckBox("SHA1")
-        chckbxSHA1.setBounds(6, 53, 97, 23);
-        self.add(chckbxSHA1);
-         
-        chckbxSHA2_256 = JCheckBox("SHA2-256");
-        chckbxSHA2_256.setBounds(6, 90, 97, 23);
-        self.add(chckbxSHA2_256);
-         
-        chckbxSHA2_384 = JCheckBox("SHA2-384");
-        chckbxSHA2_384.setBounds(6, 127, 97, 23);
-        self.add(chckbxSHA2_384);
-         
-        chckbxSHA2_512 = JCheckBox("SHA2-512");
-        chckbxSHA2_512.setBounds(6, 164, 97, 23);
-        self.add(chckbxSHA2_512);
-         
-        chckbxTAGGED_FILES = JCheckBox("PROCESS ONLY TAGGED FILES");
-        chckbxTAGGED_FILES.setSelected(True);
-        chckbxTAGGED_FILES.setBounds(100, 289, 193, 23);
-        self.add(chckbxTAGGED_FILES);
-         
-        lblNewLabel = JLabel("MESI HASH IT ALL: Hash calculation is very computing intesive. Select only needed ");
-        lblNewLabel.setHorizontalAlignment(SwingConstants.LEFT);
-        lblNewLabel.setBounds(10, 11, 416, 23);
-        self.add(lblNewLabel);
-#         
-        lblNewLabel_1 = JLabel("hash algorithms.");
-        lblNewLabel_1.setHorizontalAlignment(SwingConstants.LEFT);
-        lblNewLabel_1.setBounds(10, 33, 106, 14);
+        lblNewLabel_1 = JLabel("Select only the necessariy Algorithms")
+        lblNewLabel_1.setFont(Font("Tahoma", Font.BOLD | Font.ITALIC, 11))
+        lblNewLabel_1.setHorizontalAlignment(SwingConstants.LEFT)
+        lblNewLabel_1.setBounds(10, 33, 243, 14)
         self.add(lblNewLabel_1);
-         
-        lblNewLabel_2 = JLabel("It will take a while to process.... Please be patient");
-        lblNewLabel_2.setFont(Font("Tahoma", Font.BOLD, 14));
-        lblNewLabel_2.setHorizontalAlignment(SwingConstants.LEFT);
-        lblNewLabel_2.setLabelFor(self);
-        lblNewLabel_2.setBackground(Color.YELLOW);
-        lblNewLabel_2.setBounds(40, 319, 347, 52);
-        self.add(lblNewLabel_2);
- 
+        
+        cTAGGED_FILES = JCheckBox("PROCESS ONLY TAGGED FILES")
+        cTAGGED_FILES.setSelected(True)
+        cTAGGED_FILES.setBounds(10, 202, 193, 23)
+        self.add(cTAGGED_FILES)
+        
+        panel = JPanel(None)
+        panel.setLayout(None)
+        panel.setBorder(TitledBorder(EtchedBorder(EtchedBorder.LOWERED, Color(255, 255, 255), Color(160, 160, 160)), "Digest Algorithms", TitledBorder.LEADING, TitledBorder.TOP, None, Color(0, 0, 0)))
+        panel.setBounds(10, 56, 222, 139)
+        self.add(panel)
+        
+        cMD5 = JCheckBox("MD5 - RFC 1321")
+        cMD5.setBounds(6, 16, 147, 23)
+        panel.add(cMD5)
+        
+        cSHA1 = JCheckBox("SHA1 - FIPS PUB 180-2")
+        cSHA1.setBounds(6, 39, 180, 23);
+        panel.add(cSHA1)
+        
+        cSHA256 = JCheckBox("SHA256 - FIPS PUB 180-2")
+        cSHA256.setBounds(6, 62, 180, 23)
+        panel.add(cSHA256)
+        
+        cSHA384 = JCheckBox("SHA384 - FIPS PUB 180-2")
+        cSHA384.setBounds(6, 86, 180, 23)
+        panel.add(cSHA384)
+        
+        cSHA512 = JCheckBox("SHA512 - FIPS PUB 180-2")
+        cSHA512.setBounds(6, 109, 180, 23)
+        panel.add(cSHA512)
+        
+        lblWarningHashCalculation = JLabel("Warning: Hash calculation is time consuming. ")
+        lblWarningHashCalculation.setBounds(10, 5, 416, 23)
+        self.add(lblWarningHashCalculation)
+        lblWarningHashCalculation.setHorizontalAlignment(SwingConstants.LEFT)
+        
+        lblNewLabel = JLabel("GPL 3.0 Source: https://github.com/mesi2020/autopsy")
+        lblNewLabel.setBounds(10, 281, 317, 14)
+        self.add(lblNewLabel)
 #         
 
     # TODO: Update this for your UI
