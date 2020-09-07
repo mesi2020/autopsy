@@ -46,7 +46,6 @@ from javax.swing.border import TitledBorder, EtchedBorder, EmptyBorder
 from mailbox import _PartialFile
 from org.apache.commons.codec.digest import DigestUtils
 from org.sleuthkit.autopsy.casemodule import Case
-from org.sleuthkit.autopsy.casemodule import Case
 from org.sleuthkit.autopsy.casemodule.services import Blackboard
 from org.sleuthkit.autopsy.casemodule.services import FileManager
 from org.sleuthkit.autopsy.casemodule.services import Services
@@ -54,6 +53,7 @@ from org.sleuthkit.autopsy.coreutils import Logger
 from org.sleuthkit.autopsy.ingest import DataSourceIngestModule
 from org.sleuthkit.autopsy.ingest import FileIngestModule
 from org.sleuthkit.autopsy.ingest import GenericIngestModuleJobSettings
+
 from org.sleuthkit.autopsy.ingest import IngestMessage
 from org.sleuthkit.autopsy.ingest import IngestModule
 from org.sleuthkit.autopsy.ingest import IngestModuleFactoryAdapter
@@ -64,11 +64,11 @@ from org.sleuthkit.autopsy.ingest import IngestServices
 from org.sleuthkit.autopsy.ingest import ModuleDataEvent
 from org.sleuthkit.autopsy.ingest.IngestModule import IngestModuleException
 from org.sleuthkit.datamodel import AbstractFile, TskData
-#$DbType
 from org.sleuthkit.datamodel import BlackboardArtifact
 from org.sleuthkit.datamodel import BlackboardAttribute
 from org.sleuthkit.datamodel import ReadContentInputStream
 from org.sleuthkit.datamodel import SleuthkitCase
+from java.awt import SystemColor
 import _hashlib
 import inspect
 import jarray
@@ -96,10 +96,6 @@ class MesiHash(IngestModuleFactoryAdapter):
     def getModuleVersionNumber(self):
         return "0.5"
 
-    # Return true if module wants to get called for each file
-    def isFileIngestModuleFactory(self):
-        return True
-
     def getDefaultIngestJobSettings(self):
         return GenericIngestModuleJobSettings()
    
@@ -107,11 +103,17 @@ class MesiHash(IngestModuleFactoryAdapter):
         return True
     
     def getIngestJobSettingsPanel(self, settings):
-        #if not isinstance(settings, GenericIngestModuleJobSettings):
-        #    raise IllegalArgumentException("MESI: Expected settings argument to be instanceof GenericIngestModuleJobSettings")
+        if not isinstance(settings, GenericIngestModuleJobSettings):
+            raise IllegalArgumentException("MESI: Expected settings argument to be instanceof GenericIngestModuleJobSettings")
         self.settings = settings
         return MesiPanel(self.settings)
         #pass
+
+    # Return true if module wants to get called for each file
+    def isFileIngestModuleFactory(self):
+        return True
+
+
     # TODO: Update class name to one that you create below
     # can return null if isFileIngestModuleFactory returns false
     
@@ -124,14 +126,16 @@ class MesiHash(IngestModuleFactoryAdapter):
 # Looks at the attributes of the passed in file.
 class MesiHashFileIngestModule(FileIngestModule):
 
-    # Autopsy will pass in the settings from the UI panel
-    def __init__(self, settings):
-        self.local_settings = settings
-
     _logger = Logger.getLogger(MesiHash.moduleName)
 
     def log(self, level, msg):
         self._logger.logp(level, self.__class__.__name__, inspect.stack()[1][3], msg)
+
+    # Autopsy will pass in the settings from the UI panel
+    def __init__(self, settings):
+        self.context = None
+        self.local_settings = settings
+
 
         
     # Where any setup and configuration is done
@@ -142,7 +146,14 @@ class MesiHashFileIngestModule(FileIngestModule):
     def startUp(self, context):
         self.filesFound = 0
 
-        self.log(Level.INFO, "DEBUG: iniciei")
+        self.log(Level.INFO, "MESI HASH: DEBUG: iniciei")        
+        
+        #if self.local_settings.getSetting("md5") == "true":
+        #    self.log(Level.INFO, "md5 is set")
+        #else:
+        #    self.log(Level.INFO, "md5 is not set")
+        
+        
         # Throw an IngestModule.IngestModuleException exception if there was a problem setting up
         # raise IngestModuleException("Oh No!")
         #        
@@ -364,12 +375,11 @@ class MesiPanel(IngestModuleIngestJobSettingsPanel):
             self.local_settings.setSetting("tagged_files", "true")
         else:
             self.local_settings.setSetting("tagget_files", "false")
-
+   
     
     # TODO: Update this for your UI
     def initComponents(self):
-        
-        
+                
         self.setLayout(None)
         
         lblNewLabel_2 = JLabel("May take a while... Please be patient")
@@ -422,18 +432,21 @@ class MesiPanel(IngestModuleIngestJobSettingsPanel):
         lblWarningHashCalculation.setHorizontalAlignment(SwingConstants.LEFT)
         
         lblNewLabel = JLabel("GPL 3.0 Source: https://github.com/mesi2020/autopsy")
+        lblNewLabel.setForeground(SystemColor.textHighlight);
         lblNewLabel.setBounds(10, 281, 317, 14)
         self.add(lblNewLabel)
-#         
+   
+   
 
+       
     # TODO: Update this for your UI
     def customizeComponents(self):
         try:
             self.cSHA1.setSelected(self.local_settings.getSettings("sha1") == "true")
-            self.cMD5.setSelected(self.local_settings.getSetting("md5") == "true")                        
+            self.cMD5.setSelected(self.local_settings.getSetting("md5") == "true")                                    
         except:
             pass
-        
+    
 
     # Return the settings used
     def getSettings(self):
