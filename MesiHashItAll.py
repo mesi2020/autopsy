@@ -84,7 +84,7 @@ class MesiHash(IngestModuleFactoryAdapter):
     def __init__(self):
         self.settings = None
         
-    moduleName = "Mesi: Multi Digest Hash"
+    moduleName = "Mesi Multi Digest Hash"
 
     def getModuleDisplayName(self):
         return self.moduleName
@@ -148,10 +148,10 @@ class MesiHashFileIngestModule(FileIngestModule):
 
         self.log(Level.INFO, "MESI HASH: DEBUG: iniciei")        
         
-        #if self.local_settings.getSetting("md5") == "true":
-        #    self.log(Level.INFO, "md5 is set")
-        #else:
-        #    self.log(Level.INFO, "md5 is not set")
+        if self.local_settings.getSetting("md5") == "true":
+            self.log(Level.INFO, "md5 is set")
+        else:
+            self.log(Level.INFO, "md5 is not set")
         
         
         # Throw an IngestModule.IngestModuleException exception if there was a problem setting up
